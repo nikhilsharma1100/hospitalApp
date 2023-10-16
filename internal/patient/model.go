@@ -1,4 +1,4 @@
-package model
+package patient
 
 import (
 	"time"
@@ -7,9 +7,11 @@ import (
 )
 
 type Patient struct {
-	ID        uuid.UUID `gorm:"type:uuid; default:uuid_generate_v4(); primary_key"`
-	Name      string    `gorm:"primary_key"`
-	Email     string    `gorm:"type:varchar(255); not null"`
+	PatientID uuid.UUID `gorm:"size:5; primary_key"`
+	Name      string    `gorm:"size:50; primary_key"`
+	ContactNo string    `gorm:"size:10; not null"`
+	Address   string    `gorm:"size:50"`
+	DoctorId  uuid.UUID `gorm:"foreignKey:DoctorId"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

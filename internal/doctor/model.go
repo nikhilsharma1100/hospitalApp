@@ -1,12 +1,36 @@
-package model
+package doctor
 
 import (
-	"gorm.io/gorm"
+	"time"
 )
 
 type Doctor struct {
-	gorm.Model
-	// ID        uuid.UUID `gorm:"type:uuid; default:uuid_generate_v4(); primary_key"`
-	Name      string `gorm:"primary_key"`
-	ContactNo string `gorm:"type:varchar(10)"`
+	DoctorId  uint   `gorm:"primaryKey"`
+	Name      string `gorm:"size:50"`
+	ContactNo string `gorm:"size:10"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func GetAllEntities() []Doctor {
+	doctors := GetAll()
+
+	return doctors
+}
+
+func GetEntityById(id uint) (Doctor, error) {
+	doctor, err := FindUserById(id)
+	if err != nil {
+		return Doctor{}, err
+	}
+
+	return doctor, nil
+}
+
+func CreateEntity(entity Doctor) {
+	Create(entity)
+}
+
+func UpdateEntity(entity Doctor) {
+	Update(entity)
 }
