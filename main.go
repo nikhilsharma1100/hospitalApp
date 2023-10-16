@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"hospitalApp/initializers"
@@ -14,9 +13,11 @@ var (
 	server *gin.Engine
 )
 
-func init() {
+func main() {
 	loadEnv()
 	loadDatabase()
+
+	//doctorObj := doctor.Doctor{DoctorId: 6, Name: "Superman", ContactNo: "9876543210", CreatedAt: time.Now(), UpdatedAt: time.Now()}
 }
 
 func loadDatabase() {
@@ -28,15 +29,13 @@ func loadDatabase() {
 func loadEnv() {
 	err := godotenv.Load(".env.local")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal("Error loading .env.local file")
 	}
 }
+func serveApplication() {
+	router := gin.Default()
 
-func main() {
-	//doctorObj := doctor.Doctor{DoctorId: 6, Name: "Superman", ContactNo: "9876543210", CreatedAt: time.Now(), UpdatedAt: time.Now()}
-	//doctor.Create(doctorObj)
-
-	//doctor.Update(doctorObj)
-	//doctor.Delete(doctorObj)
-	fmt.Println(doctor.GetAll())
+	apiGroup := router.Group("api")
+	apiGroup.GET("doctor/getAll", doctor.GetAllEntities)
+	apiGroup.POST("doctor/add", doctor.CreateEntity)
 }
