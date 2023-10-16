@@ -1,0 +1,21 @@
+# env files
+.env*
+
+# JetBrains project folders.
+.idea/
+
+# VSCode project folder
+.vscode/*
+
+# Desktop Services Store - Mac.
+.DS_Store
+
+# Vendor modules.
+vendor/*
+
+# App Binaries.
+bin/*
+*__debug_bin
+
+# Generated log files or temporary files.
+storage/*

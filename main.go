@@ -1,9 +1,13 @@
 package main
 
 import (
-	"net/http"
-
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
+	"hospitalApp/initializers"
+	"hospitalApp/internal/doctor"
+	"hospitalApp/internal/patient"
+	"log"
 )
 
 var (
@@ -11,17 +15,28 @@ var (
 )
 
 func init() {
-	server = gin.Default()
+	loadEnv()
+	loadDatabase()
+}
+
+func loadDatabase() {
+	initializers.Connect()
+	initializers.Database.AutoMigrate(&doctor.Doctor{})
+	initializers.Database.AutoMigrate(&patient.Patient{})
+}
+
+func loadEnv() {
+	err := godotenv.Load(".env.local")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 }
 
 func main() {
+	//doctorObj := doctor.Doctor{DoctorId: 6, Name: "Superman", ContactNo: "9876543210", CreatedAt: time.Now(), UpdatedAt: time.Now()}
+	//doctor.Create(doctorObj)
 
-	router := server.Group("/api")
-	router.GET("/healthchecker", func(ctx *gin.Context) {
-		message := "Welcome to Golang with Gorm and Postgres"
-		ctx.JSON(http.StatusOK, gin.H{"status": "success", "message": message})
-	})
-	// fmt.Println("In main.go")
-
-	// log.Fatal(server.Run(":" + config.ServerPort))
+	//doctor.Update(doctorObj)
+	//doctor.Delete(doctorObj)
+	fmt.Println(doctor.GetAll())
 }
