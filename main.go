@@ -9,14 +9,10 @@ import (
 	"log"
 )
 
-var (
-	server *gin.Engine
-)
-
 func main() {
 	loadEnv()
 	loadDatabase()
-
+	serveApplication()
 	//doctorObj := doctor.Doctor{DoctorId: 6, Name: "Superman", ContactNo: "9876543210", CreatedAt: time.Now(), UpdatedAt: time.Now()}
 }
 
@@ -32,10 +28,14 @@ func loadEnv() {
 		log.Fatal("Error loading .env.local file")
 	}
 }
-func serveApplication() {
-	router := gin.Default()
 
-	apiGroup := router.Group("api")
-	apiGroup.GET("doctor/getAll", doctor.GetAllEntities)
-	apiGroup.POST("doctor/add", doctor.CreateEntity)
+func serveApplication() {
+	server := gin.Default()
+
+	router := server.Group("api")
+	router.GET("doctor/getAll", doctor.GetAllEntities)
+	router.GET("doctor/getByName", doctor.GetEntityByName)
+	router.POST("doctor/add", doctor.CreateEntity)
+	router.PATCH("doctor/update", doctor.UpdateEntity)
+	server.Run(":8000")
 }

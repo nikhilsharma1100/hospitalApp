@@ -15,9 +15,18 @@ func GetAll() []Doctor {
 
 func FindUserById(id uint) (Doctor, error) {
 	var doctor Doctor
-	err := initializers.Database.Where("DoctorId=?", id).Find(&doctor).Error
+	err := initializers.Database.Where(&Doctor{DoctorId: id}).Find(&doctor).Error
 	if err != nil {
 		return Doctor{}, err
+	}
+	return doctor, nil
+}
+
+func FindUserByName(name string) (Doctor, error) {
+	var doctor Doctor
+	result := initializers.Database.Where(&Doctor{Name: name}).Find(&doctor)
+	if result.Error != nil || result.RowsAffected == 0 {
+		return Doctor{}, result.Error
 	}
 	return doctor, nil
 }
