@@ -2,15 +2,27 @@ package doctor
 
 import (
 	"hospitalApp/initializers"
+	"hospitalApp/internal/patient"
 	"log"
 )
 
 func GetAll() []Doctor {
-	doctor := []Doctor{}
+	var doctor []Doctor
 	//context.JSON(http.StatusOK, gin.H{"data": initializers.Database.Find(&doctor)})
-	initializers.Database.Find(&doctor)
+	initializers.Database.Preload("Patients").Find(&doctor)
 
 	return doctor
+}
+
+func GetDoctorPatients(name string) ([]patient.Patient, error) {
+	var doctor Doctor
+	err := initializers.Database.Preload("Patients").Where(&Doctor{Name: name}).Find(&doctor).Error
+
+	if err != nil {
+		return []patient.Patient{}, err
+	}
+
+	return doctor.Patients, nil
 }
 
 func FindUserById(id uint) (Doctor, error) {
@@ -32,11 +44,12 @@ func FindUserByName(name string) (Doctor, error) {
 }
 
 func Create(entity Doctor) {
-	result := initializers.Database.Create(&entity)
+	log.Println("Before create:")
+	result := initializers.Database.Omit("Patients").Create(&entity)
 	if result.Error != nil {
 		log.Fatal(result.Error)
 	}
-
+	log.Println("After create:")
 	log.Println(result.RowsAffected)
 }
 
@@ -47,6 +60,14 @@ func Update(entity Doctor) {
 
 	//fmt.Println(entity)
 }
+
+func UpdateAssociation(doctorEntity Doctor, entity patient.Patient) {
+	err := initializers.Database.Model(&doctorEntity).Association("Patients").Append(&entity)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func Delete(entity Doctor) {
 	result := initializers.Database.Delete(entity)
 	if result.Error != nil {
@@ -54,4 +75,13 @@ func Delete(entity Doctor) {
 	}
 
 	log.Println(result.RowsAffected)
+}
+
+func DeleteDoctorPatientRecord(name string) {
+	//var patients patient.Patient
+	//initializers.Database.Model(&Doctor{}).Where(Doctor{Name: name}).Association("Patients").Find(&patients)
+	//log.Println(patients)
+
+	//TODO : This is not working
+	initializers.Database.Association("Patients").Delete(patient.Patient{Name: name})
 }

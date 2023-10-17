@@ -35,7 +35,16 @@ func serveApplication() {
 	router := server.Group("api")
 	router.GET("doctor/getAll", doctor.GetAllEntities)
 	router.GET("doctor/getByName", doctor.GetEntityByName)
+	router.GET("doctor/getPatients", doctor.GetPatientsByDoctor)
 	router.POST("doctor/add", doctor.CreateEntity)
 	router.PATCH("doctor/update", doctor.UpdateEntity)
+	router.PATCH("doctor/addPatient", doctor.UpdatePatientDataById)
+	router.GET("doctor/deletePatient", doctor.DeletePatientRecord)
+
+	router.GET("patient/getAll", patient.GetAllEntities)
+	router.GET("patient/getByName", patient.GetEntityByName)
+	router.POST("patient/add", patient.CreateEntity)
+	router.PATCH("patient/update", patient.UpdateEntity)
+	
 	server.Run(":8000")
 }
