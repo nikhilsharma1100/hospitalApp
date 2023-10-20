@@ -3,36 +3,45 @@ package patient
 import (
 	"github.com/gin-gonic/gin"
 	"log"
+	"math/rand"
 	"net/http"
 	"time"
 )
 
 type CreatePatientRequest struct {
-	PatientId uint   `json:"patient_id"`
+	PatientId string `json:"patient_id"`
 	Name      string `json:"name"`
 	ContactNo string `json:"contact_no"`
 	Address   string `json:"address"`
 }
 
 type UpdatePatientRequestUri struct {
-	Id uint `json:"id" uri:"id"`
+	Id string `json:"id" uri:"id"`
+}
+
+type UpdatePatientRequestUriName struct {
+	Name string `json:"name" uri:"name"`
 }
 
 type UpdatePatientRequest struct {
-	DoctorId  uint   `json:"doctor_id"`
+	DoctorId  string `json:"doctor_id"`
 	ContactNo string `json:"contact_no"`
 	Address   string `json:"address"`
 }
 
 func GetByName(context *gin.Context) {
-	name := context.Query("name")
-	patient, err := GetEntityByName(name)
-	log.Printf("Patient data get by Name(%q) : %+v", name, patient)
+	uri := UpdatePatientRequestUriName{}
+	if err := context.BindUri(&uri); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+
+	patient, err := GetEntityByName(uri.Name)
+	log.Printf("Patient data get by Name(%q) : %+v", uri.Name, patient)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
-	if patient.PatientID == 0 {
+	if patient.PatientID == "" {
 		context.JSON(http.StatusOK, gin.H{"data": ""})
 		return
 	}
@@ -45,8 +54,12 @@ func GetAll(context *gin.Context) {
 	context.JSON(http.StatusOK, gin.H{"data": patients})
 }
 
-func GetById(context *gin.Context, id uint) {
-	patient, err := GetEntityById(id)
+func GetById(context *gin.Context) {
+	uri := UpdatePatientRequestUri{}
+	if err := context.BindUri(&uri); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+	patient, err := GetEntityById(uri.Id)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
@@ -62,7 +75,7 @@ func Create(context *gin.Context) {
 	}
 
 	var patientData Patient
-	patientData.PatientID = inputData.PatientId
+	patientData.PatientID = generatePrimaryKey(5)
 	patientData.Name = inputData.Name
 	patientData.ContactNo = inputData.ContactNo
 	patientData.Address = inputData.Address
@@ -100,11 +113,23 @@ func Update(context *gin.Context) {
 	context.JSON(http.StatusOK, gin.H{"data": "updated"})
 }
 
-func GetPatientFromDBById(id uint) (Patient, error) {
+func GetPatientFromDBById(id string) (Patient, error) {
 	patient, err := GetEntityById(id)
 	if err != nil {
 		return Patient{}, err
 	}
 
 	return patient, nil
+}
+
+func generatePrimaryKey(length uint) string {
+	var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+	const charset = "abcdefghijklmnopqrstuvwxyz" +
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[seededRand.Intn(len(charset))]
+	}
+	return string(b)
 }

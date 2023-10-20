@@ -6,7 +6,7 @@ import (
 )
 
 type Doctor struct {
-	DoctorId  uint              `json:"doctor_id" gorm:"primary_key; references"`
+	DoctorId  string            `json:"doctor_id" gorm:"primary_key; references; size:5"`
 	Name      string            `json:"name" gorm:"size:50"`
 	ContactNo string            `json:"contact_no" gorm:"size:10"`
 	Patients  []patient.Patient `gorm:"many2many:doctor_patients"`

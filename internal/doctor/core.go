@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"hospitalApp/internal/patient"
 	"log"
+	"math/rand"
 	"net/http"
 	"time"
 )
@@ -13,23 +14,23 @@ type GetDoctorByNameRequest struct {
 }
 
 type GetDoctorByIdRequest struct {
-	ID uint `json:"id" uri:"id"`
+	ID string `json:"id" uri:"id"`
 }
 
 type CreateDoctorRequest struct {
-	DoctorId  uint   `json:"doctor_id"`
+	DoctorId  string `json:"doctor_id"`
 	Name      string `json:"name"`
 	ContactNo string `json:"contact_no"`
 }
 
 type UpdateDoctorRequest struct {
-	DoctorId  uint   `json:"doctor_id"`
+	DoctorId  string `json:"doctor_id"`
 	Name      string `json:"name"`
 	ContactNo string `json:"contact_no"`
 }
 
 type UpdatePatientRequest struct {
-	DoctorId uint            `json:"doctor_id"`
+	DoctorId string          `json:"doctor_id"`
 	Patient  patient.Patient `json:"patient"`
 }
 
@@ -45,7 +46,7 @@ func GetByName(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
-	if doctor.DoctorId == 0 {
+	if doctor.DoctorId == "" {
 		context.JSON(http.StatusOK, gin.H{"data": ""})
 		return
 	}
@@ -98,7 +99,7 @@ func Create(context *gin.Context) {
 	}
 
 	var doctorData Doctor
-	doctorData.DoctorId = inputData.DoctorId
+	doctorData.DoctorId = generatePrimaryKey(5)
 	doctorData.Name = inputData.Name
 	doctorData.ContactNo = inputData.ContactNo
 	doctorData.CreatedAt = time.Now()
@@ -141,18 +142,30 @@ func UpdatePatientById(context *gin.Context) {
 	log.Printf("Doctor data input : %+v", inputData)
 	doctorData, err := GetDoctorFromDBById(inputData.DoctorId)
 	if err != nil {
-		log.Fatal(err)
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
 	UpdateEntityAssociation(doctorData, inputData.Patient)
 	context.JSON(http.StatusOK, gin.H{"data": "updated"})
 }
 
-func GetDoctorFromDBById(id uint) (Doctor, error) {
+func GetDoctorFromDBById(id string) (Doctor, error) {
 	doctor, err := GetEntityById(id)
 	if err != nil {
 		return Doctor{}, err
 	}
 
 	return doctor, nil
+}
+
+func generatePrimaryKey(length uint) string {
+	var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+	const charset = "abcdefghijklmnopqrstuvwxyz" +
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[seededRand.Intn(len(charset))]
+	}
+	return string(b)
 }

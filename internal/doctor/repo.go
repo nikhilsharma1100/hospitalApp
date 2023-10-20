@@ -25,7 +25,7 @@ func GetPatientEntityByName(name string) ([]patient.Patient, error) {
 	return doctor.Patients, nil
 }
 
-func GetEntityById(id uint) (Doctor, error) {
+func GetEntityById(id string) (Doctor, error) {
 	var doctor Doctor
 	err := initializers.Database.Where(&Doctor{DoctorId: id}).Find(&doctor).Error
 	if err != nil {

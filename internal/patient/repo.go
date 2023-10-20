@@ -13,7 +13,7 @@ func GetAllEntities() []Patient {
 	return patient
 }
 
-func GetEntityById(id uint) (Patient, error) {
+func GetEntityById(id string) (Patient, error) {
 	var patient Patient
 	err := initializers.Database.Where(&Patient{PatientID: id}).Find(&patient).Error
 	if err != nil {
