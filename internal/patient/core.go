@@ -70,6 +70,7 @@ func Create(context *gin.Context) {
 
 	validationErr := validation.ValidateStruct(&inputData,
 		validation.Field(&inputData.ContactNo, validation.Match(regexp.MustCompile("\\d{10}$")), validation.Length(10, 10)),
+		validation.Field(&inputData.DoctorID, validation.Required),
 	)
 	if validationErr != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
