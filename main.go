@@ -5,6 +5,7 @@ import (
 	"github.com/joho/godotenv"
 	"hospitalApp/initializers"
 	"hospitalApp/internal/doctor"
+	"hospitalApp/internal/handler"
 	"hospitalApp/internal/patient"
 	"log"
 )
@@ -32,19 +33,6 @@ func loadEnv() {
 func serveApplication() {
 	server := gin.Default()
 
-	router := server.Group("api")
-	router.GET("doctor/getAll", doctor.GetAllEntities)
-	router.GET("doctor/getByName", doctor.GetEntityByName)
-	router.GET("doctor/getPatients", doctor.GetPatientsByDoctor)
-	router.POST("doctor/add", doctor.CreateEntity)
-	router.PATCH("doctor/update", doctor.UpdateEntity)
-	router.PATCH("doctor/addPatient", doctor.UpdatePatientDataById)
-	router.GET("doctor/deletePatient", doctor.DeletePatientRecord)
-
-	router.GET("patient/getAll", patient.GetAllEntities)
-	router.GET("patient/getByName", patient.GetEntityByName)
-	router.POST("patient/add", patient.CreateEntity)
-	router.PATCH("patient/update", patient.UpdateEntity)
-	
+	server = handler.ServeRoutes(server)
 	server.Run(":8000")
 }
