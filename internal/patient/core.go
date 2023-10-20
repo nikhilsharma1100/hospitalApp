@@ -8,6 +8,14 @@ import (
 	"time"
 )
 
+type ICore interface {
+	GetByName(context *gin.Context)
+	GetAll(context *gin.Context)
+	GetById(context *gin.Context)
+	Create(context *gin.Context)
+	Update(context *gin.Context)
+}
+
 func GetByName(context *gin.Context) {
 	uri := UpdatePatientRequestUriName{}
 	if err := context.BindUri(&uri); err != nil {
@@ -20,7 +28,7 @@ func GetByName(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
-	if patient.PatientID == "" {
+	if patient.PatientId == "" {
 		context.JSON(http.StatusOK, gin.H{"data": ""})
 		return
 	}
@@ -54,7 +62,7 @@ func Create(context *gin.Context) {
 	}
 
 	var patientData Patient
-	patientData.PatientID = generatePrimaryKey(5)
+	patientData.PatientId = generatePrimaryKey(5)
 	patientData.Name = inputData.Name
 	patientData.ContactNo = inputData.ContactNo
 	patientData.Address = inputData.Address
@@ -79,7 +87,7 @@ func Update(context *gin.Context) {
 	}
 
 	log.Printf("Patient data input : %+v", inputData)
-	patientData, err := GetPatientFromDBById(uri.Id)
+	patientData, err := getPatientFromDBById(uri.Id)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -92,7 +100,7 @@ func Update(context *gin.Context) {
 	context.JSON(http.StatusOK, gin.H{"data": "updated"})
 }
 
-func GetPatientFromDBById(id string) (Patient, error) {
+func getPatientFromDBById(id string) (Patient, error) {
 	patient, err := GetEntityById(id)
 	if err != nil {
 		return Patient{}, err

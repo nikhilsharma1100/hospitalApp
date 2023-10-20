@@ -2,11 +2,24 @@ package doctor
 
 import (
 	"github.com/gin-gonic/gin"
+	validation "github.com/go-ozzo/ozzo-validation"
 	"log"
 	"math/rand"
 	"net/http"
+	"reflect"
+	"regexp"
 	"time"
 )
+
+type ICore interface {
+	GetByName(context *gin.Context)
+	GetAll(context *gin.Context)
+	GetPatient(context *gin.Context)
+	DeletePatient(context *gin.Context)
+	Create(context *gin.Context)
+	Update(context *gin.Context)
+	UpdatePatientById(context *gin.Context)
+}
 
 func GetByName(context *gin.Context) {
 	uri := GetDoctorByNameRequest{}
@@ -52,19 +65,6 @@ func DeletePatient(context *gin.Context) {
 	context.JSON(http.StatusOK, gin.H{"data": "deleted"})
 }
 
-func GetById(context *gin.Context) {
-	uri := GetDoctorByIdRequest{}
-	if err := context.BindUri(&uri); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	}
-	doctor, err := GetEntityById(uri.ID)
-	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	}
-
-	context.JSON(http.StatusOK, gin.H{"data": doctor})
-}
-
 func Create(context *gin.Context) {
 	// Read request input here
 	var inputData CreateDoctorRequest
@@ -72,6 +72,14 @@ func Create(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
+	validationErr := validation.ValidateStruct(&inputData,
+		validation.Field(&inputData.ContactNo, validation.Match(regexp.MustCompile("\\d{10}$")), validation.Length(10, 10)),
+	)
+
+	if validationErr != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
+		return
+	}
 	var doctorData Doctor
 	doctorData.DoctorId = generatePrimaryKey(5)
 	doctorData.Name = inputData.Name
@@ -82,23 +90,27 @@ func Create(context *gin.Context) {
 	log.Println("Doctor data : %+v", doctorData)
 	CreateEntity(doctorData)
 
-	context.JSON(http.StatusCreated, gin.H{"data": "created"})
+	context.JSON(http.StatusCreated, gin.H{"data": doctorData})
 }
 
 func Update(context *gin.Context) {
 	// Read request input here
-	var inputData UpdateDoctorRequest
+	inputData := UpdateDoctorRequest{}
+	uri := UpdateDoctorRequestUri{}
 	if err := context.ShouldBindJSON(&inputData); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
-
+	if err := context.BindUri(&uri); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
 	log.Printf("Doctor data input : %+v", inputData)
-	doctorData, err := GetDoctorFromDBById(inputData.DoctorId)
+
+	doctorData, err := getDoctorFromDBById(uri.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Printf("Doctor data getFromDB : %+v", doctorData)
-	doctorData.Name = inputData.Name
 	doctorData.ContactNo = inputData.ContactNo
 	doctorData.UpdatedAt = time.Now()
 	UpdateEntity(doctorData)
@@ -113,17 +125,22 @@ func UpdatePatientById(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
-	log.Printf("Doctor data input : %+v", inputData)
-	doctorData, err := GetDoctorFromDBById(inputData.DoctorId)
+	var emptyDoctorStruct Doctor
+	doctorData, err := getDoctorFromDBById(inputData.DoctorId)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	} else if reflect.DeepEqual(emptyDoctorStruct, doctorData) {
+		context.JSON(http.StatusBadRequest, gin.H{"error": "Entity Id not found"})
+		return
 	}
 
+	log.Println("Doctor data getById : %+v", doctorData)
 	UpdateEntityAssociation(doctorData, inputData.Patient)
 	context.JSON(http.StatusOK, gin.H{"data": "updated"})
 }
 
-func GetDoctorFromDBById(id string) (Doctor, error) {
+func getDoctorFromDBById(id string) (Doctor, error) {
 	doctor, err := GetEntityById(id)
 	if err != nil {
 		return Doctor{}, err

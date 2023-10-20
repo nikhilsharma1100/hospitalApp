@@ -11,15 +11,16 @@ type GetDoctorByIdRequest struct {
 }
 
 type CreateDoctorRequest struct {
-	DoctorId  string `json:"doctor_id"`
 	Name      string `json:"name"`
 	ContactNo string `json:"contact_no"`
 }
 
 type UpdateDoctorRequest struct {
-	DoctorId  string `json:"doctor_id"`
-	Name      string `json:"name"`
-	ContactNo string `json:"contact_no"`
+	ContactNo string `json:"contact_no" binding:"required"`
+}
+
+type UpdateDoctorRequestUri struct {
+	ID string `json:"id" uri:"id"`
 }
 
 type UpdatePatientRequest struct {

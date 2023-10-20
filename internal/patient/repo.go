@@ -5,6 +5,15 @@ import (
 	"log"
 )
 
+type IRepo interface {
+	GetAllEntities() []Patient
+	GetEntityById(id string) (Patient, error)
+	GetEntityByName(name string) (Patient, error)
+	CreateEntity(entity Patient)
+	UpdateEntity(entity Patient)
+	DeleteEntity(entity Patient)
+}
+
 func GetAllEntities() []Patient {
 	patient := []Patient{}
 	//context.JSON(http.StatusOK, gin.H{"data": initializers.Database.Find(&patient)})
@@ -15,7 +24,7 @@ func GetAllEntities() []Patient {
 
 func GetEntityById(id string) (Patient, error) {
 	var patient Patient
-	err := initializers.Database.Where(&Patient{PatientID: id}).Find(&patient).Error
+	err := initializers.Database.Where(&Patient{PatientId: id}).Find(&patient).Error
 	if err != nil {
 		return Patient{}, err
 	}

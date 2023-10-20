@@ -6,6 +6,18 @@ import (
 	"log"
 )
 
+type IRepo interface {
+	GetAllEntities() []Doctor
+	GetPatientEntityByName(name string) ([]patient.Patient, error)
+	GetEntityById(id string) (Doctor, error)
+	GetEntityByName(name string) (Doctor, error)
+	CreateEntity(entity Doctor)
+	UpdateEntity(entity Doctor)
+	UpdateEntityAssociation(doctorEntity Doctor, entity patient.Patient)
+	DeleteEntity(entity Doctor)
+	DeletePatientEntityForDoctor(name string)
+}
+
 func GetAllEntities() []Doctor {
 	var doctor []Doctor
 	//context.JSON(http.StatusOK, gin.H{"data": initializers.Database.Find(&doctor)})
@@ -27,9 +39,13 @@ func GetPatientEntityByName(name string) ([]patient.Patient, error) {
 
 func GetEntityById(id string) (Doctor, error) {
 	var doctor Doctor
-	err := initializers.Database.Where(&Doctor{DoctorId: id}).Find(&doctor).Error
-	if err != nil {
-		return Doctor{}, err
+	result := initializers.Database.Where(&Doctor{DoctorId: id}).Find(&doctor)
+	if result.Error != nil {
+		return Doctor{}, result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return Doctor{}, nil
 	}
 	return doctor, nil
 }

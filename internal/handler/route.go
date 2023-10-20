@@ -21,7 +21,7 @@ func doctorRoutes(router *gin.RouterGroup) *gin.RouterGroup {
 	router.GET("doctor/:name", doctor.GetByName)
 	router.GET("doctor/getPatients", doctor.GetPatient)
 	router.POST("doctor", doctor.Create)
-	router.PATCH("doctor", doctor.Update)
+	router.PATCH("doctor/:id", doctor.Update)
 	router.PATCH("doctor/addPatient", doctor.UpdatePatientById)
 	router.GET("doctor/deletePatient", doctor.DeletePatient)
 
