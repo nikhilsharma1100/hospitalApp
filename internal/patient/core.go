@@ -2,9 +2,11 @@ package patient
 
 import (
 	"github.com/gin-gonic/gin"
+	validation "github.com/go-ozzo/ozzo-validation"
 	"log"
 	"math/rand"
 	"net/http"
+	"regexp"
 	"time"
 )
 
@@ -66,6 +68,14 @@ func Create(context *gin.Context) {
 		return
 	}
 
+	validationErr := validation.ValidateStruct(&inputData,
+		validation.Field(&inputData.ContactNo, validation.Match(regexp.MustCompile("\\d{10}$")), validation.Length(10, 10)),
+	)
+	if validationErr != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
+		return
+	}
+
 	var patientData Patient
 	patientData.ID = generatePrimaryKey(5)
 	patientData.Name = inputData.Name
@@ -78,7 +88,7 @@ func Create(context *gin.Context) {
 	log.Printf("Patient data : %+v", patientData)
 	CreateEntity(patientData)
 
-	context.JSON(http.StatusCreated, gin.H{"data": "created"})
+	context.JSON(http.StatusCreated, gin.H{"data": patientData})
 }
 
 func Update(context *gin.Context) {

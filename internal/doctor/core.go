@@ -79,11 +79,11 @@ func Create(context *gin.Context) {
 	validationErr := validation.ValidateStruct(&inputData,
 		validation.Field(&inputData.ContactNo, validation.Match(regexp.MustCompile("\\d{10}$")), validation.Length(10, 10)),
 	)
-
 	if validationErr != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
 		return
 	}
+
 	var doctorData Doctor
 	doctorData.ID = generatePrimaryKey(5)
 	doctorData.Name = inputData.Name
