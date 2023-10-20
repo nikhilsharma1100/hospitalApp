@@ -2,37 +2,11 @@ package doctor
 
 import (
 	"github.com/gin-gonic/gin"
-	"hospitalApp/internal/patient"
 	"log"
 	"math/rand"
 	"net/http"
 	"time"
 )
-
-type GetDoctorByNameRequest struct {
-	Name string `json:"name" uri:"name"`
-}
-
-type GetDoctorByIdRequest struct {
-	ID string `json:"id" uri:"id"`
-}
-
-type CreateDoctorRequest struct {
-	DoctorId  string `json:"doctor_id"`
-	Name      string `json:"name"`
-	ContactNo string `json:"contact_no"`
-}
-
-type UpdateDoctorRequest struct {
-	DoctorId  string `json:"doctor_id"`
-	Name      string `json:"name"`
-	ContactNo string `json:"contact_no"`
-}
-
-type UpdatePatientRequest struct {
-	DoctorId string          `json:"doctor_id"`
-	Patient  patient.Patient `json:"patient"`
-}
 
 func GetByName(context *gin.Context) {
 	uri := GetDoctorByNameRequest{}
