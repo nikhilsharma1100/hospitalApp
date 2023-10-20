@@ -24,7 +24,7 @@ func GetAllEntities() []Patient {
 
 func GetEntityById(id string) (Patient, error) {
 	var patient Patient
-	err := initializers.Database.Where(&Patient{PatientId: id}).Find(&patient).Error
+	err := initializers.Database.Where(&Patient{ID: id}).Find(&patient).Error
 	if err != nil {
 		return Patient{}, err
 	}

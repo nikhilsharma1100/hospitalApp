@@ -39,7 +39,7 @@ func GetPatientEntityByName(name string) ([]patient.Patient, error) {
 
 func GetEntityById(id string) (Doctor, error) {
 	var doctor Doctor
-	result := initializers.Database.Where(&Doctor{DoctorId: id}).Find(&doctor)
+	result := initializers.Database.Where(&Doctor{ID: id}).Find(&doctor)
 	if result.Error != nil {
 		return Doctor{}, result.Error
 	}

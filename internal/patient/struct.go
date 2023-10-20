@@ -1,14 +1,15 @@
 package patient
 
 type CreatePatientRequest struct {
-	PatientId string `json:"patient_id"`
+	ID        string `json:"id"`
 	Name      string `json:"name"`
 	ContactNo string `json:"contact_no"`
 	Address   string `json:"address"`
+	DoctorID  string `json:"doctor_id"`
 }
 
 type UpdatePatientRequestUri struct {
-	Id string `json:"id" uri:"id"`
+	ID string `json:"id" uri:"id"`
 }
 
 type UpdatePatientRequestUriName struct {
@@ -16,7 +17,7 @@ type UpdatePatientRequestUriName struct {
 }
 
 type UpdatePatientRequest struct {
-	DoctorId  string `json:"doctor_id"`
+	ID        string `json:"id"`
 	ContactNo string `json:"contact_no"`
 	Address   string `json:"address"`
 }

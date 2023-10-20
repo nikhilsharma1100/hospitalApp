@@ -28,7 +28,7 @@ func GetByName(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
-	if patient.PatientId == "" {
+	if patient.ID == "" {
 		context.JSON(http.StatusOK, gin.H{"data": ""})
 		return
 	}
@@ -46,7 +46,7 @@ func GetById(context *gin.Context) {
 	if err := context.BindUri(&uri); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
-	patient, err := GetEntityById(uri.Id)
+	patient, err := GetEntityById(uri.ID)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
@@ -62,10 +62,11 @@ func Create(context *gin.Context) {
 	}
 
 	var patientData Patient
-	patientData.PatientId = generatePrimaryKey(5)
+	patientData.ID = generatePrimaryKey(5)
 	patientData.Name = inputData.Name
 	patientData.ContactNo = inputData.ContactNo
 	patientData.Address = inputData.Address
+	patientData.DoctorID = inputData.DoctorID
 	patientData.CreatedAt = time.Now()
 	patientData.UpdatedAt = time.Now()
 
@@ -87,7 +88,7 @@ func Update(context *gin.Context) {
 	}
 
 	log.Printf("Patient data input : %+v", inputData)
-	patientData, err := getPatientFromDBById(uri.Id)
+	patientData, err := getPatientFromDBById(uri.ID)
 	if err != nil {
 		log.Fatal(err)
 	}

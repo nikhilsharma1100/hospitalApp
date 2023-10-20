@@ -14,7 +14,7 @@ func main() {
 	loadEnv()
 	loadDatabase()
 	serveApplication()
-	//doctorObj := doctor.Doctor{DoctorId: 6, Name: "Superman", ContactNo: "9876543210", CreatedAt: time.Now(), UpdatedAt: time.Now()}
+	//doctorObj := doctor.Doctor{ID: 6, Name: "Superman", ContactNo: "9876543210", CreatedAt: time.Now(), UpdatedAt: time.Now()}
 }
 
 func loadDatabase() {
