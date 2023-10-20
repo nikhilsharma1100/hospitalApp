@@ -25,12 +25,14 @@ func GetByName(context *gin.Context) {
 	uri := GetDoctorByNameRequest{}
 	if err := context.BindUri(&uri); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
 	doctor, err := GetEntityByName(uri.Name)
 	log.Printf("Doctor data get by Name(%q) : %+v", uri.Name, doctor)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
 	if doctor.ID == "" {
@@ -52,6 +54,7 @@ func GetPatient(context *gin.Context) {
 	patientsData, err := GetPatientEntityByName(name)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
 	context.JSON(http.StatusOK, gin.H{"data": patientsData})
@@ -70,6 +73,7 @@ func Create(context *gin.Context) {
 	var inputData CreateDoctorRequest
 	if err := context.ShouldBindJSON(&inputData); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
 	validationErr := validation.ValidateStruct(&inputData,
@@ -103,6 +107,7 @@ func Update(context *gin.Context) {
 	}
 	if err := context.BindUri(&uri); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 	log.Printf("Doctor data input : %+v", inputData)
 
@@ -123,6 +128,7 @@ func UpdatePatientById(context *gin.Context) {
 	var inputData UpdatePatientRequest
 	if err := context.ShouldBindJSON(&inputData); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
 	var emptyDoctorStruct Doctor
