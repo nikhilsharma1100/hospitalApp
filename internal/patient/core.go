@@ -7,23 +7,26 @@ import (
 	"time"
 )
 
-type CreateRequestPatientData struct {
+type CreatePatientRequest struct {
 	PatientId uint   `json:"patient_id"`
 	Name      string `json:"name"`
 	ContactNo string `json:"contact_no"`
 	Address   string `json:"address"`
 }
 
-type UpdateRequestPatientData struct {
-	PatientId uint   `json:"patient_id"`
-	Name      string `json:"name"`
+type UpdatePatientRequestUri struct {
+	Id uint `json:"id" uri:"id"`
+}
+
+type UpdatePatientRequest struct {
+	DoctorId  uint   `json:"doctor_id"`
 	ContactNo string `json:"contact_no"`
 	Address   string `json:"address"`
 }
 
-func GetEntityByName(context *gin.Context) {
+func GetByName(context *gin.Context) {
 	name := context.Query("name")
-	patient, err := FindUserByName(name)
+	patient, err := GetEntityByName(name)
 	log.Printf("Patient data get by Name(%q) : %+v", name, patient)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -36,14 +39,14 @@ func GetEntityByName(context *gin.Context) {
 	context.JSON(http.StatusOK, gin.H{"data": patient})
 }
 
-func GetAllEntities(context *gin.Context) {
-	patients := GetAll()
+func GetAll(context *gin.Context) {
+	patients := GetAllEntities()
 
 	context.JSON(http.StatusOK, gin.H{"data": patients})
 }
 
-func GetEntityById(context *gin.Context, id uint) {
-	patient, err := FindUserById(id)
+func GetById(context *gin.Context, id uint) {
+	patient, err := GetEntityById(id)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
@@ -51,9 +54,9 @@ func GetEntityById(context *gin.Context, id uint) {
 	context.JSON(http.StatusOK, gin.H{"data": patient})
 }
 
-func CreateEntity(context *gin.Context) {
+func Create(context *gin.Context) {
 	// Read request input here
-	var inputData CreateRequestPatientData
+	var inputData CreatePatientRequest
 	if err := context.ShouldBindJSON(&inputData); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
@@ -67,34 +70,38 @@ func CreateEntity(context *gin.Context) {
 	patientData.UpdatedAt = time.Now()
 
 	log.Printf("Patient data : %+v", patientData)
-	Create(patientData)
+	CreateEntity(patientData)
 
 	context.JSON(http.StatusCreated, gin.H{"data": "created"})
 }
 
-func UpdateEntity(context *gin.Context) {
+func Update(context *gin.Context) {
 	// Read request input here
-	var inputData UpdateRequestPatientData
+	inputData := UpdatePatientRequest{}
+	uri := UpdatePatientRequestUri{}
 	if err := context.ShouldBindJSON(&inputData); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+	if err := context.BindUri(&uri); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
 	log.Printf("Patient data input : %+v", inputData)
-	patientData, err := GetPatientFromDBById(inputData.PatientId)
+	patientData, err := GetPatientFromDBById(uri.Id)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Printf("Patient data getFromDB : %+v", patientData)
-	patientData.Name = inputData.Name
 	patientData.ContactNo = inputData.ContactNo
+	patientData.Address = inputData.Address
 	patientData.UpdatedAt = time.Now()
-	Update(patientData)
+	UpdateEntity(patientData)
 
 	context.JSON(http.StatusOK, gin.H{"data": "updated"})
 }
 
 func GetPatientFromDBById(id uint) (Patient, error) {
-	patient, err := FindUserById(id)
+	patient, err := GetEntityById(id)
 	if err != nil {
 		return Patient{}, err
 	}

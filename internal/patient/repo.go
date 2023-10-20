@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-func GetAll() []Patient {
+func GetAllEntities() []Patient {
 	patient := []Patient{}
 	//context.JSON(http.StatusOK, gin.H{"data": initializers.Database.Find(&patient)})
 	initializers.Database.Find(&patient)
@@ -13,7 +13,7 @@ func GetAll() []Patient {
 	return patient
 }
 
-func FindUserById(id uint) (Patient, error) {
+func GetEntityById(id uint) (Patient, error) {
 	var patient Patient
 	err := initializers.Database.Where(&Patient{PatientID: id}).Find(&patient).Error
 	if err != nil {
@@ -22,7 +22,7 @@ func FindUserById(id uint) (Patient, error) {
 	return patient, nil
 }
 
-func FindUserByName(name string) (Patient, error) {
+func GetEntityByName(name string) (Patient, error) {
 	var patient Patient
 	result := initializers.Database.Where(&Patient{Name: name}).Find(&patient)
 	if result.Error != nil || result.RowsAffected == 0 {
@@ -31,7 +31,7 @@ func FindUserByName(name string) (Patient, error) {
 	return patient, nil
 }
 
-func Create(entity Patient) {
+func CreateEntity(entity Patient) {
 	result := initializers.Database.Create(&entity)
 	if result.Error != nil {
 		log.Fatal(result.Error)
@@ -40,14 +40,14 @@ func Create(entity Patient) {
 	log.Println(result.RowsAffected)
 }
 
-func Update(entity Patient) {
+func UpdateEntity(entity Patient) {
 	//patient := entity
 	//fmt.Println(entity)
 	initializers.Database.Save(&entity)
 
 	//fmt.Println(entity)
 }
-func Delete(entity Patient) {
+func DeleteEntity(entity Patient) {
 	result := initializers.Database.Delete(entity)
 	if result.Error != nil {
 		log.Fatal(result.Error)

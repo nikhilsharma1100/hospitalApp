@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-func GetAll() []Doctor {
+func GetAllEntities() []Doctor {
 	var doctor []Doctor
 	//context.JSON(http.StatusOK, gin.H{"data": initializers.Database.Find(&doctor)})
 	initializers.Database.Preload("Patients").Find(&doctor)
@@ -14,7 +14,7 @@ func GetAll() []Doctor {
 	return doctor
 }
 
-func GetDoctorPatients(name string) ([]patient.Patient, error) {
+func GetPatientEntityByName(name string) ([]patient.Patient, error) {
 	var doctor Doctor
 	err := initializers.Database.Preload("Patients").Where(&Doctor{Name: name}).Find(&doctor).Error
 
@@ -25,7 +25,7 @@ func GetDoctorPatients(name string) ([]patient.Patient, error) {
 	return doctor.Patients, nil
 }
 
-func FindUserById(id uint) (Doctor, error) {
+func GetEntityById(id uint) (Doctor, error) {
 	var doctor Doctor
 	err := initializers.Database.Where(&Doctor{DoctorId: id}).Find(&doctor).Error
 	if err != nil {
@@ -34,7 +34,7 @@ func FindUserById(id uint) (Doctor, error) {
 	return doctor, nil
 }
 
-func FindUserByName(name string) (Doctor, error) {
+func GetEntityByName(name string) (Doctor, error) {
 	var doctor Doctor
 	result := initializers.Database.Where(&Doctor{Name: name}).Find(&doctor)
 	if result.Error != nil || result.RowsAffected == 0 {
@@ -43,7 +43,7 @@ func FindUserByName(name string) (Doctor, error) {
 	return doctor, nil
 }
 
-func Create(entity Doctor) {
+func CreateEntity(entity Doctor) {
 	log.Println("Before create:")
 	result := initializers.Database.Omit("Patients").Create(&entity)
 	if result.Error != nil {
@@ -53,7 +53,7 @@ func Create(entity Doctor) {
 	log.Println(result.RowsAffected)
 }
 
-func Update(entity Doctor) {
+func UpdateEntity(entity Doctor) {
 	//doctor := entity
 	//fmt.Println(entity)
 	initializers.Database.Save(&entity)
@@ -61,14 +61,14 @@ func Update(entity Doctor) {
 	//fmt.Println(entity)
 }
 
-func UpdateAssociation(doctorEntity Doctor, entity patient.Patient) {
+func UpdateEntityAssociation(doctorEntity Doctor, entity patient.Patient) {
 	err := initializers.Database.Model(&doctorEntity).Association("Patients").Append(&entity)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func Delete(entity Doctor) {
+func DeleteEntity(entity Doctor) {
 	result := initializers.Database.Delete(entity)
 	if result.Error != nil {
 		log.Fatal(result.Error)
@@ -77,7 +77,7 @@ func Delete(entity Doctor) {
 	log.Println(result.RowsAffected)
 }
 
-func DeleteDoctorPatientRecord(name string) {
+func DeletePatientEntityForDoctor(name string) {
 	//var patients patient.Patient
 	//initializers.Database.Model(&Doctor{}).Where(Doctor{Name: name}).Association("Patients").Find(&patients)
 	//log.Println(patients)

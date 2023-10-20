@@ -9,6 +9,7 @@ type Patient struct {
 	Name      string `json:"name" gorm:"size:50; primary_key"`
 	ContactNo string `json:"contact_no" gorm:"size:10; not null"`
 	Address   string `json:"address" gorm:"size:50"`
+	DoctorId  uint   `json:"doctor_id"`
 	//Doctors   []*doctor.Doctor `gorm:"many2many:doctor_patients"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

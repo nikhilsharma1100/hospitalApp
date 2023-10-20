@@ -16,22 +16,23 @@ func ServeRoutes(server *gin.Engine) *gin.Engine {
 }
 
 func doctorRoutes(router *gin.RouterGroup) *gin.RouterGroup {
-	router.GET("doctor/getAll", doctor.GetAllEntities)
-	router.GET("doctor/getByName", doctor.GetEntityByName)
-	router.GET("doctor/getPatients", doctor.GetPatientsByDoctor)
-	router.POST("doctor/add", doctor.CreateEntity)
-	router.PATCH("doctor/update", doctor.UpdateEntity)
-	router.PATCH("doctor/addPatient", doctor.UpdatePatientDataById)
-	router.GET("doctor/deletePatient", doctor.DeletePatientRecord)
+	router.GET("doctor", doctor.GetAll)
+	//router.GET("doctor/:id", doctor.GetById)
+	router.GET("doctor/:name", doctor.GetByName)
+	router.GET("doctor/getPatients", doctor.GetPatient)
+	router.POST("doctor", doctor.Create)
+	router.PATCH("doctor", doctor.Update)
+	router.PATCH("doctor/addPatient", doctor.UpdatePatientById)
+	router.GET("doctor/deletePatient", doctor.DeletePatient)
 
 	return router
 }
 
 func patientRoutes(router *gin.RouterGroup) *gin.RouterGroup {
-	router.GET("patient/getAll", patient.GetAllEntities)
-	router.GET("patient/getByName", patient.GetEntityByName)
-	router.POST("patient/add", patient.CreateEntity)
-	router.PATCH("patient/update", patient.UpdateEntity)
+	router.GET("patient", patient.GetAll)
+	router.GET("patient/:name", patient.GetByName)
+	router.POST("patient", patient.Create)
+	router.PATCH("patient/:id", patient.Update)
 
 	return router
 }
