@@ -1,11 +1,10 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"hospitalApp/initializers"
+	"hospitalApp/internal/boot"
 	"hospitalApp/internal/doctor"
-	"hospitalApp/internal/handler"
 	"hospitalApp/internal/patient"
 	"log"
 )
@@ -32,8 +31,6 @@ func loadEnv() {
 }
 
 func serveApplication() {
-	server := gin.Default()
-
-	server = handler.ServeRoutes(server)
+	server := boot.NewHandler()
 	server.Run(":8000")
 }
