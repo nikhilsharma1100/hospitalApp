@@ -12,12 +12,13 @@ import (
 
 func main() {
 	loadEnv()
-	loadDatabase()
+	initDatabase()
+	// init handlers/routes.go
 	serveApplication()
 	//doctorObj := doctor.Doctor{ID: 6, Name: "Superman", ContactNo: "9876543210", CreatedAt: time.Now(), UpdatedAt: time.Now()}
 }
 
-func loadDatabase() {
+func initDatabase() {
 	initializers.Connect()
 	initializers.Database.AutoMigrate(&doctor.Doctor{})
 	initializers.Database.AutoMigrate(&patient.Patient{})

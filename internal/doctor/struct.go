@@ -27,3 +27,5 @@ type UpdatePatientRequest struct {
 	ID      string          `json:"id"`
 	Patient patient.Patient `json:"patient"`
 }
+
+// Add response structs

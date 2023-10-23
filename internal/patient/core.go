@@ -10,6 +10,10 @@ import (
 	"time"
 )
 
+type Core struct {
+	repo IRepo
+}
+
 type ICore interface {
 	GetByName(context *gin.Context)
 	GetAll(context *gin.Context)
@@ -18,14 +22,20 @@ type ICore interface {
 	Update(context *gin.Context)
 }
 
-func GetByName(context *gin.Context) {
+func NewCore() *Core {
+	return &Core{
+		repo: NewRepo(),
+	}
+}
+
+func (c *Core) GetByName(context *gin.Context) {
 	uri := UpdatePatientRequestUriName{}
 	if err := context.BindUri(&uri); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	patient, err := GetEntityByName(uri.Name)
+	patient, err := c.repo.GetEntityByName(uri.Name)
 	log.Printf("Patient data get by Name(%q) : %+v", uri.Name, patient)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -39,19 +49,19 @@ func GetByName(context *gin.Context) {
 	context.JSON(http.StatusOK, gin.H{"data": patient})
 }
 
-func GetAll(context *gin.Context) {
-	patients := GetAllEntities()
+func (c *Core) GetAll(context *gin.Context) {
+	patients := c.repo.GetAllEntities()
 
 	context.JSON(http.StatusOK, gin.H{"data": patients})
 }
 
-func GetById(context *gin.Context) {
+func (c *Core) GetById(context *gin.Context) {
 	uri := UpdatePatientRequestUri{}
 	if err := context.BindUri(&uri); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	patient, err := GetEntityById(uri.ID)
+	patient, err := c.repo.GetEntityById(uri.ID)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -60,7 +70,7 @@ func GetById(context *gin.Context) {
 	context.JSON(http.StatusOK, gin.H{"data": patient})
 }
 
-func Create(context *gin.Context) {
+func (c *Core) Create(context *gin.Context) {
 	// Read request input here
 	var inputData CreatePatientRequest
 	if err := context.ShouldBindJSON(&inputData); err != nil {
@@ -87,12 +97,12 @@ func Create(context *gin.Context) {
 	patientData.UpdatedAt = time.Now()
 
 	log.Printf("Patient data : %+v", patientData)
-	CreateEntity(patientData)
+	c.repo.CreateEntity(patientData)
 
 	context.JSON(http.StatusCreated, gin.H{"data": patientData})
 }
 
-func Update(context *gin.Context) {
+func (c *Core) Update(context *gin.Context) {
 	// Read request input here
 	inputData := UpdatePatientRequest{}
 	uri := UpdatePatientRequestUri{}
@@ -106,7 +116,7 @@ func Update(context *gin.Context) {
 	}
 
 	log.Printf("Patient data input : %+v", inputData)
-	patientData, err := getPatientFromDBById(uri.ID)
+	patientData, err := c.getPatientFromDBById(uri.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -114,13 +124,13 @@ func Update(context *gin.Context) {
 	patientData.ContactNo = inputData.ContactNo
 	patientData.Address = inputData.Address
 	patientData.UpdatedAt = time.Now()
-	UpdateEntity(patientData)
+	c.repo.UpdateEntity(patientData)
 
 	context.JSON(http.StatusOK, gin.H{"data": "updated"})
 }
 
-func getPatientFromDBById(id string) (Patient, error) {
-	patient, err := GetEntityById(id)
+func (c *Core) getPatientFromDBById(id string) (Patient, error) {
+	patient, err := c.repo.GetEntityById(id)
 	if err != nil {
 		return Patient{}, err
 	}

@@ -16,7 +16,7 @@ func ServeRoutes(server *gin.Engine) *gin.Engine {
 }
 
 func doctorRoutes(router *gin.RouterGroup) *gin.RouterGroup {
-	router.GET("doctor", doctor.GetAll)
+	router.GET("doctor", doctor.GetAll) // call by server.go
 	//router.GET("doctor/:id", doctor.GetById)
 	router.GET("doctor/:name", doctor.GetByName)
 	router.GET("doctor/getPatients", doctor.GetPatient)
