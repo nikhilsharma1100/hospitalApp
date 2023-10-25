@@ -8,7 +8,7 @@ import (
 
 type IRepo interface {
 	GetAllEntities() []Doctor
-	GetPatientEntityByName(name string) ([]patient.Patient, error)
+	GetPatientEntityByDoctorId(name string) ([]patient.Patient, error)
 	GetEntityById(id string) (Doctor, error)
 	GetEntityByName(name string) (Doctor, error)
 	CreateEntity(entity Doctor)
@@ -26,10 +26,12 @@ func GetAllEntities() []Doctor {
 	return doctor
 }
 
-func GetPatientEntityByName(name string) ([]patient.Patient, error) {
+func GetPatientEntityByDoctorId(id string) ([]patient.Patient, error) {
 	var doctor Doctor
-	err := initializers.Database.Preload("Patients").Where(&Doctor{Name: name}).Find(&doctor).Error
-
+	//var patients []patient.Patient
+	err := initializers.Database.Preload("Patients").Where(&Doctor{ID: id}).Find(&doctor).Error
+	//err := initializers.Database.Model(&doctor).Where("doctor_id = ?", id).Association("Patients").Find(&patients)
+	//result := initializers.Database.Preload("Patients").Where("doctor_id = ?", id).Find(&doctor)
 	if err != nil {
 		return []patient.Patient{}, err
 	}
@@ -75,29 +77,4 @@ func UpdateEntity(entity Doctor) {
 	initializers.Database.Save(&entity)
 
 	//fmt.Println(entity)
-}
-
-func UpdateEntityAssociation(doctorEntity Doctor, entity patient.Patient) {
-	err := initializers.Database.Model(&doctorEntity).Association("Patients").Append(&entity)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func DeleteEntity(entity Doctor) {
-	result := initializers.Database.Delete(entity)
-	if result.Error != nil {
-		log.Fatal(result.Error)
-	}
-
-	log.Println(result.RowsAffected)
-}
-
-func DeletePatientEntityForDoctor(name string) {
-	//var patients patient.Patient
-	//initializers.Database.Model(&Doctor{}).Where(Doctor{Name: name}).Association("Patients").Find(&patients)
-	//log.Println(patients)
-
-	//TODO : This is not working
-	initializers.Database.Association("Patients").Delete(patient.Patient{Name: name})
 }

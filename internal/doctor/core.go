@@ -6,7 +6,6 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
-	"reflect"
 	"regexp"
 	"time"
 )
@@ -14,7 +13,7 @@ import (
 type ICore interface {
 	GetByName(context *gin.Context)
 	GetAll(context *gin.Context)
-	GetPatient(context *gin.Context)
+	GetPatientByDoctorId(context *gin.Context)
 	DeletePatient(context *gin.Context)
 	Create(context *gin.Context)
 	Update(context *gin.Context)
@@ -48,24 +47,20 @@ func GetAll(context *gin.Context) {
 	context.JSON(http.StatusOK, gin.H{"data": doctors})
 }
 
-func GetPatient(context *gin.Context) {
-	name := context.Query("name")
+func GetPatientByDoctorId(context *gin.Context) {
+	uri := GetPatientByDoctorIdRequest{}
+	if err := context.BindUri(&uri); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-	patientsData, err := GetPatientEntityByName(name)
+	patientsData, err := GetPatientEntityByDoctorId(uri.ID)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	context.JSON(http.StatusOK, gin.H{"data": patientsData})
-}
-
-func DeletePatient(context *gin.Context) {
-	name := context.Query("name")
-
-	DeletePatientEntityForDoctor(name)
-
-	context.JSON(http.StatusOK, gin.H{"data": "deleted"})
 }
 
 func Create(context *gin.Context) {
@@ -120,29 +115,6 @@ func Update(context *gin.Context) {
 	doctorData.UpdatedAt = time.Now()
 	UpdateEntity(doctorData)
 
-	context.JSON(http.StatusOK, gin.H{"data": "updated"})
-}
-
-func UpdatePatientById(context *gin.Context) {
-	// Read request input here
-	var inputData UpdatePatientRequest
-	if err := context.ShouldBindJSON(&inputData); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	var emptyDoctorStruct Doctor
-	doctorData, err := getDoctorFromDBById(inputData.ID)
-	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	} else if reflect.DeepEqual(emptyDoctorStruct, doctorData) {
-		context.JSON(http.StatusBadRequest, gin.H{"error": "Entity Id not found"})
-		return
-	}
-
-	log.Println("Doctor data getById : %+v", doctorData)
-	UpdateEntityAssociation(doctorData, inputData.Patient)
 	context.JSON(http.StatusOK, gin.H{"data": "updated"})
 }
 

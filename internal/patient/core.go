@@ -111,6 +111,7 @@ func Update(context *gin.Context) {
 		log.Fatal(err)
 	}
 	log.Printf("Patient data getFromDB : %+v", patientData)
+	patientData.DoctorID = inputData.DoctorID
 	patientData.ContactNo = inputData.ContactNo
 	patientData.Address = inputData.Address
 	patientData.UpdatedAt = time.Now()

@@ -6,10 +6,10 @@ import (
 )
 
 type Doctor struct {
-	ID        string `json:"id" gorm:"primary_key; references; size:5"`
-	Name      string `json:"name" gorm:"size:50"`
-	ContactNo string `json:"contact_no" gorm:"size:10"`
-	Patients  []patient.Patient
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID        string            `gorm:"primary_key; references; size:5"`
+	Name      string            `gorm:"size:50"`
+	ContactNo string            `gorm:"size:10"`
+	Patients  []patient.Patient `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
