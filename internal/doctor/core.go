@@ -11,24 +11,22 @@ import (
 )
 
 type ICore interface {
-	GetByName(context *gin.Context)
+	GetById(context *gin.Context)
 	GetAll(context *gin.Context)
 	GetPatientByDoctorId(context *gin.Context)
-	DeletePatient(context *gin.Context)
 	Create(context *gin.Context)
 	Update(context *gin.Context)
-	UpdatePatientById(context *gin.Context)
 }
 
-func GetByName(context *gin.Context) {
-	uri := GetDoctorByNameRequest{}
+func GetById(context *gin.Context) {
+	uri := GetDoctorByIdRequest{}
 	if err := context.BindUri(&uri); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	doctor, err := GetEntityByName(uri.Name)
-	log.Printf("Doctor data get by Name(%q) : %+v", uri.Name, doctor)
+	doctor, err := GetEntityById(uri.ID)
+	log.Printf("Doctor data get by Id(%q) : %+v", uri.ID, doctor)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

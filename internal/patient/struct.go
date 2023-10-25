@@ -12,10 +12,6 @@ type UpdatePatientRequestUri struct {
 	ID string `json:"id" uri:"id"`
 }
 
-type UpdatePatientRequestUriName struct {
-	Name string `json:"name" uri:"name"`
-}
-
 type UpdatePatientRequest struct {
 	DoctorID  string `json:"doctor_id"`
 	ContactNo string `json:"contact_no"`

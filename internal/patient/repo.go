@@ -8,10 +8,8 @@ import (
 type IRepo interface {
 	GetAllEntities() []Patient
 	GetEntityById(id string) (Patient, error)
-	GetEntityByName(name string) (Patient, error)
 	CreateEntity(entity Patient)
 	UpdateEntity(entity Patient)
-	DeleteEntity(entity Patient)
 }
 
 func GetAllEntities() []Patient {
@@ -55,12 +53,4 @@ func UpdateEntity(entity Patient) {
 	initializers.Database.Save(&entity)
 
 	//fmt.Println(entity)
-}
-func DeleteEntity(entity Patient) {
-	result := initializers.Database.Delete(entity)
-	if result.Error != nil {
-		log.Fatal(result.Error)
-	}
-
-	log.Println(result.RowsAffected)
 }

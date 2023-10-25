@@ -10,12 +10,8 @@ type IRepo interface {
 	GetAllEntities() []Doctor
 	GetPatientEntityByDoctorId(name string) ([]patient.Patient, error)
 	GetEntityById(id string) (Doctor, error)
-	GetEntityByName(name string) (Doctor, error)
 	CreateEntity(entity Doctor)
 	UpdateEntity(entity Doctor)
-	UpdateEntityAssociation(doctorEntity Doctor, entity patient.Patient)
-	DeleteEntity(entity Doctor)
-	DeletePatientEntityForDoctor(name string)
 }
 
 func GetAllEntities() []Doctor {
@@ -29,7 +25,7 @@ func GetAllEntities() []Doctor {
 func GetPatientEntityByDoctorId(id string) ([]patient.Patient, error) {
 	var doctor Doctor
 	//var patients []patient.Patient
-	err := initializers.Database.Preload("Patients").Where(&Doctor{ID: id}).Find(&doctor).Error
+	err := initializers.Database.Where(&Doctor{ID: id}).Preload("Patients").Find(&doctor).Error
 	//err := initializers.Database.Model(&doctor).Where("doctor_id = ?", id).Association("Patients").Find(&patients)
 	//result := initializers.Database.Preload("Patients").Where("doctor_id = ?", id).Find(&doctor)
 	if err != nil {

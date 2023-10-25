@@ -16,21 +16,19 @@ func ServeRoutes(server *gin.Engine) *gin.Engine {
 }
 
 func doctorRoutes(router *gin.RouterGroup) *gin.RouterGroup {
-	router.GET("doctor", doctor.GetAll)
-	//router.GET("doctor/:id", doctor.GetById)
-	router.GET("doctor/:name", doctor.GetByName)
-	router.GET("doctor/getPatientsByDoctorId/:id", doctor.GetPatientByDoctorId)
 	router.POST("doctor", doctor.Create)
 	router.PATCH("doctor/:id", doctor.Update)
+	router.GET("doctor", doctor.GetAll)
+	router.GET("doctor/:id", doctor.GetById)
+	router.GET("doctor/getPatientsByDoctorId/:id", doctor.GetPatientByDoctorId)
 
 	return router
 }
 
 func patientRoutes(router *gin.RouterGroup) *gin.RouterGroup {
-	router.GET("patient", patient.GetAll)
-	router.GET("patient/:name", patient.GetByName)
 	router.POST("patient", patient.Create)
 	router.PATCH("patient/:id", patient.Update)
+	router.GET("patient", patient.GetAll)
 
 	return router
 }

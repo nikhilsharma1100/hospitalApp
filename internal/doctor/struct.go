@@ -1,11 +1,5 @@
 package doctor
 
-import "hospitalApp/internal/patient"
-
-type GetDoctorByNameRequest struct {
-	Name string `json:"name" uri:"name"`
-}
-
 type GetDoctorByIdRequest struct {
 	ID string `json:"id" uri:"id"`
 }
@@ -23,11 +17,6 @@ type UpdateDoctorRequestUri struct {
 	ID string `json:"id" uri:"id"`
 }
 
-type UpdatePatientRequest struct {
-	ID      string          `json:"id"`
-	Patient patient.Patient `json:"patient"`
-}
-
 type GetPatientByDoctorIdRequest struct {
-	ID string `json:"id"`
+	ID string `json:"id" uri:"id"`
 }
