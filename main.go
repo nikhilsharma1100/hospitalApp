@@ -32,5 +32,5 @@ func loadEnv() {
 
 func serveApplication() {
 	server := boot.NewHandler()
-	server.Run(":8000")
+	server.Engine.Run(":8000")
 }

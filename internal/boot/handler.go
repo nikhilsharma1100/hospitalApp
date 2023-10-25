@@ -1,41 +1,41 @@
 package boot
 
 import (
-	"context"
 	"github.com/gin-gonic/gin"
 	"hospitalApp/internal/doctor"
 	"hospitalApp/internal/patient"
 )
 
-type Handler struct {
+type handler struct {
 	doctorServer  *doctor.Server
 	patientServer *patient.Server
 	Engine        *gin.Engine
 }
 
-func (h *Handler) NewHandler() *Handler {
-	return &Handler{
+func NewHandler() *handler {
+	h := &handler{}
+	return &handler{
 		doctorServer:  doctor.NewServer(),
 		patientServer: patient.NewServer(),
-		Engine:        h.ServeRoutes(gin.Default()),
+		Engine:        h.ServeRoutes(),
 	}
 }
 
-func (h *Handler) ServeRoutes(server *gin.Engine) *gin.Engine {
-	router := server.Group("api")
+func (h *handler) ServeRoutes() *gin.Engine {
 
-	router = h.doctorRoutes(router)
-	router = h.patientRoutes(router)
+	h.doctorRoutes()
+	h.patientRoutes()
 
-	return server
+	return h.Engine
 }
 
-type handler struct {
-	ctx context.Context
-	Gin *gin.Engine
-}
+//type handler struct {
+//	ctx context.Context
+//	Gin *gin.Engine
+//}
 
-func (h *Handler) doctorRoutes(router *gin.RouterGroup) *gin.RouterGroup {
+func (h *handler) doctorRoutes() *gin.RouterGroup {
+	router := h.Engine.Group("api")
 	router.GET("doctor", h.doctorServer.Core.GetAll) // call by server.go
 	//router.GET("doctor/:id", h.doctorServer.Core.GetById)
 	router.GET("doctor/:name", h.doctorServer.Core.GetByName)
@@ -48,7 +48,8 @@ func (h *Handler) doctorRoutes(router *gin.RouterGroup) *gin.RouterGroup {
 	return router
 }
 
-func (h *Handler) patientRoutes(router *gin.RouterGroup) *gin.RouterGroup {
+func (h *handler) patientRoutes() *gin.RouterGroup {
+	router := h.Engine.Group("api")
 	router.GET("patient", h.patientServer.Core.GetAll)
 	router.GET("patient/:name", h.patientServer.Core.GetByName)
 	router.POST("patient", h.patientServer.Core.Create)
