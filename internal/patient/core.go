@@ -1,91 +1,76 @@
 package patient
 
 import (
-	"github.com/gin-gonic/gin"
-	validation "github.com/go-ozzo/ozzo-validation"
 	"log"
 	"math/rand"
-	"net/http"
-	"regexp"
 	"time"
 )
 
+type Core struct {
+	repo *Repo
+}
+
 type ICore interface {
-	GetByName(context *gin.Context)
-	GetAll(context *gin.Context)
-	GetById(context *gin.Context)
-	Create(context *gin.Context)
-	Update(context *gin.Context)
+	GetAll() []Patient
+	Create(request CreatePatientRequest) (Patient, error)
+	Update(request UpdatePatientRequest) error
 }
 
-func GetAll(context *gin.Context) {
-	patients := GetAllEntities()
-
-	context.JSON(http.StatusOK, gin.H{"data": patients})
+type IValidator interface {
+	ValidateCreateRequest(input CreatePatientRequest) error
 }
 
-func Create(context *gin.Context) {
-	// Read request input here
-	var inputData CreatePatientRequest
-	if err := context.ShouldBindJSON(&inputData); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+func NewCore(r *Repo) *Core {
+	return &Core{r}
+}
 
-	validationErr := validation.ValidateStruct(&inputData,
-		validation.Field(&inputData.ContactNo, validation.Match(regexp.MustCompile("\\d{10}$")), validation.Length(10, 10)),
-		validation.Field(&inputData.DoctorID, validation.Required),
-	)
+func (c *Core) GetAll() []Patient {
+	patients := c.repo.GetAllEntities()
+
+	return patients
+}
+
+func (c *Core) Create(request CreatePatientRequest) (Patient, error) {
+
+	validationErr := c.ValidateCreateRequest(request)
 	if validationErr != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
-		return
+		return Patient{}, validationErr
 	}
 
 	var patientData Patient
-	patientData.ID = generatePrimaryKey(5)
-	patientData.Name = inputData.Name
-	patientData.ContactNo = inputData.ContactNo
-	patientData.Address = inputData.Address
-	patientData.DoctorID = inputData.DoctorID
+	patientData.ID = c.generatePrimaryKey(5)
+	patientData.Name = request.Name
+	patientData.ContactNo = request.ContactNo
+	patientData.Address = request.Address
+	patientData.DoctorID = request.DoctorID
 	patientData.CreatedAt = time.Now()
 	patientData.UpdatedAt = time.Now()
 
 	log.Printf("Patient data : %+v", patientData)
-	CreateEntity(patientData)
+	c.repo.CreateEntity(patientData)
 
-	context.JSON(http.StatusCreated, gin.H{"data": patientData})
+	return patientData, nil
 }
 
-func Update(context *gin.Context) {
-	// Read request input here
-	inputData := UpdatePatientRequest{}
-	uri := UpdatePatientRequestUri{}
-	if err := context.ShouldBindJSON(&inputData); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	if err := context.BindUri(&uri); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+func (c *Core) Update(request UpdatePatientRequest) error {
 
-	log.Printf("Patient data input : %+v", inputData)
-	patientData, err := getPatientFromDBById(uri.ID)
+	patientData, err := c.getPatientFromDBById(request.ID)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return err
 	}
 	log.Printf("Patient data getFromDB : %+v", patientData)
-	patientData.DoctorID = inputData.DoctorID
-	patientData.ContactNo = inputData.ContactNo
-	patientData.Address = inputData.Address
+	patientData.DoctorID = request.DoctorID
+	patientData.ContactNo = request.ContactNo
+	patientData.Address = request.Address
 	patientData.UpdatedAt = time.Now()
-	UpdateEntity(patientData)
+	c.repo.UpdateEntity(patientData)
 
-	context.JSON(http.StatusOK, gin.H{"data": "updated"})
+	return nil
 }
 
-func getPatientFromDBById(id string) (Patient, error) {
-	patient, err := GetEntityById(id)
+func (c *Core) getPatientFromDBById(id string) (Patient, error) {
+	patient, err := c.repo.GetEntityById(id)
 	if err != nil {
 		return Patient{}, err
 	}
@@ -93,7 +78,7 @@ func getPatientFromDBById(id string) (Patient, error) {
 	return patient, nil
 }
 
-func generatePrimaryKey(length uint) string {
+func (c *Core) generatePrimaryKey(length uint) string {
 	var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 	const charset = "abcdefghijklmnopqrstuvwxyz" +
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"

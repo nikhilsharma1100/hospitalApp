@@ -9,8 +9,13 @@ type CreateDoctorRequest struct {
 	ContactNo string `json:"contact_no"`
 }
 
+type UpdateDoctorRequestBody struct {
+	ContactNo string `json:"contact_no" binding:"required"`
+}
+
 type UpdateDoctorRequest struct {
 	ContactNo string `json:"contact_no" binding:"required"`
+	ID        string `json:"id"`
 }
 
 type UpdateDoctorRequestUri struct {

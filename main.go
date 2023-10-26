@@ -3,12 +3,13 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"gorm.io/gorm"
 	"hospitalApp/initializers"
-	"hospitalApp/internal/doctor"
 	"hospitalApp/internal/handler"
-	"hospitalApp/internal/patient"
 	"log"
 )
+
+var db *gorm.DB
 
 func main() {
 	loadEnv()
@@ -18,9 +19,10 @@ func main() {
 }
 
 func loadDatabase() {
-	initializers.Connect()
-	initializers.Database.AutoMigrate(&doctor.Doctor{})
-	initializers.Database.AutoMigrate(&patient.Patient{})
+	db, _ = initializers.Connect()
+
+	log.Println("1")
+	log.Println(db)
 }
 
 func loadEnv() {
@@ -33,6 +35,11 @@ func loadEnv() {
 func serveApplication() {
 	server := gin.Default()
 
-	server = handler.ServeRoutes(server)
+	log.Println("2")
+	log.Println(db)
+	server, err := handler.ServeRoutes(server, db)
+	if err != nil {
+		log.Fatal("Error while running the server: " + err.Error())
+	}
 	server.Run(":8000")
 }

@@ -1,9 +1,13 @@
 package patient
 
 import (
-	"hospitalApp/initializers"
+	"gorm.io/gorm"
 	"log"
 )
+
+type Repo struct {
+	db *gorm.DB
+}
 
 type IRepo interface {
 	GetAllEntities() []Patient
@@ -12,34 +16,38 @@ type IRepo interface {
 	UpdateEntity(entity Patient)
 }
 
-func GetAllEntities() []Patient {
+func NewRepo(db *gorm.DB) *Repo {
+	return &Repo{db}
+}
+
+func (r *Repo) GetAllEntities() []Patient {
 	patient := []Patient{}
 	//context.JSON(http.StatusOK, gin.H{"data": initializers.Database.Find(&patient)})
-	initializers.Database.Find(&patient)
+	r.db.Find(&patient)
 
 	return patient
 }
 
-func GetEntityById(id string) (Patient, error) {
+func (r *Repo) GetEntityById(id string) (Patient, error) {
 	var patient Patient
-	err := initializers.Database.Where(&Patient{ID: id}).Find(&patient).Error
+	err := r.db.Where(&Patient{ID: id}).Find(&patient).Error
 	if err != nil {
 		return Patient{}, err
 	}
 	return patient, nil
 }
 
-func GetEntityByName(name string) (Patient, error) {
+func (r *Repo) GetEntityByName(name string) (Patient, error) {
 	var patient Patient
-	result := initializers.Database.Where(&Patient{Name: name}).Find(&patient)
+	result := r.db.Where(&Patient{Name: name}).Find(&patient)
 	if result.Error != nil || result.RowsAffected == 0 {
 		return Patient{}, result.Error
 	}
 	return patient, nil
 }
 
-func CreateEntity(entity Patient) {
-	result := initializers.Database.Create(&entity)
+func (r *Repo) CreateEntity(entity Patient) {
+	result := r.db.Create(&entity)
 	if result.Error != nil {
 		log.Fatal(result.Error)
 	}
@@ -47,10 +55,10 @@ func CreateEntity(entity Patient) {
 	log.Println(result.RowsAffected)
 }
 
-func UpdateEntity(entity Patient) {
+func (r *Repo) UpdateEntity(entity Patient) {
 	//patient := entity
 	//fmt.Println(entity)
-	initializers.Database.Save(&entity)
+	r.db.Save(&entity)
 
 	//fmt.Println(entity)
 }

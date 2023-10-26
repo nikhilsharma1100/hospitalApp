@@ -2,6 +2,8 @@ package initializers
 
 import (
 	"fmt"
+	"hospitalApp/internal/doctor"
+	"hospitalApp/internal/patient"
 	"os"
 
 	"gorm.io/driver/postgres"
@@ -10,7 +12,7 @@ import (
 
 var Database *gorm.DB
 
-func Connect() {
+func Connect() (*gorm.DB, error) {
 	var err error
 	host := os.Getenv("DB_HOST")
 	username := os.Getenv("DB_USER")
@@ -23,7 +25,14 @@ func Connect() {
 
 	if err != nil {
 		panic(err)
-	} else {
-		fmt.Println("Successfully connected to the database")
 	}
+
+	return Database, err
+}
+
+func RunMigrations(db *gorm.DB) *gorm.DB {
+	db.AutoMigrate(&doctor.Doctor{})
+	db.AutoMigrate(&patient.Patient{})
+
+	return db
 }

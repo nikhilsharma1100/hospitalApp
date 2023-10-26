@@ -13,6 +13,13 @@ type UpdatePatientRequestUri struct {
 }
 
 type UpdatePatientRequest struct {
+	ID        string `json:"id"`
+	DoctorID  string `json:"doctor_id"`
+	ContactNo string `json:"contact_no"`
+	Address   string `json:"address"`
+}
+
+type UpdatePatientRequestBody struct {
 	DoctorID  string `json:"doctor_id"`
 	ContactNo string `json:"contact_no"`
 	Address   string `json:"address"`

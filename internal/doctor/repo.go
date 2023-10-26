@@ -1,10 +1,14 @@
 package doctor
 
 import (
-	"hospitalApp/initializers"
+	"gorm.io/gorm"
 	"hospitalApp/internal/patient"
 	"log"
 )
+
+type Repo struct {
+	db *gorm.DB
+}
 
 type IRepo interface {
 	GetAllEntities() []Doctor
@@ -14,20 +18,24 @@ type IRepo interface {
 	UpdateEntity(entity Doctor)
 }
 
-func GetAllEntities() []Doctor {
+func NewRepo(db *gorm.DB) *Repo {
+	return &Repo{db}
+}
+
+func (r *Repo) GetAllEntities() []Doctor {
 	var doctor []Doctor
 	//context.JSON(http.StatusOK, gin.H{"data": initializers.Database.Find(&doctor)})
-	initializers.Database.Preload("Patients").Find(&doctor)
+	r.db.Preload("Patients").Find(&doctor)
 
 	return doctor
 }
 
-func GetPatientEntityByDoctorId(id string) ([]patient.Patient, error) {
+func (r *Repo) GetPatientEntityByDoctorId(id string) ([]patient.Patient, error) {
 	var doctor Doctor
 	//var patients []patient.Patient
-	err := initializers.Database.Where(&Doctor{ID: id}).Preload("Patients").Find(&doctor).Error
-	//err := initializers.Database.Model(&doctor).Where("doctor_id = ?", id).Association("Patients").Find(&patients)
-	//result := initializers.Database.Preload("Patients").Where("doctor_id = ?", id).Find(&doctor)
+	err := r.db.Where(&Doctor{ID: id}).Preload("Patients").Find(&doctor).Error
+	//err := r.db.Model(&doctor).Where("doctor_id = ?", id).Association("Patients").Find(&patients)
+	//result := r.db.Preload("Patients").Where("doctor_id = ?", id).Find(&doctor)
 	if err != nil {
 		return []patient.Patient{}, err
 	}
@@ -35,9 +43,9 @@ func GetPatientEntityByDoctorId(id string) ([]patient.Patient, error) {
 	return doctor.Patients, nil
 }
 
-func GetEntityById(id string) (Doctor, error) {
+func (r *Repo) GetEntityById(id string) (Doctor, error) {
 	var doctor Doctor
-	result := initializers.Database.Where(&Doctor{ID: id}).Find(&doctor)
+	result := r.db.Where(&Doctor{ID: id}).Find(&doctor)
 	if result.Error != nil {
 		return Doctor{}, result.Error
 	}
@@ -48,18 +56,9 @@ func GetEntityById(id string) (Doctor, error) {
 	return doctor, nil
 }
 
-func GetEntityByName(name string) (Doctor, error) {
-	var doctor Doctor
-	result := initializers.Database.Where(&Doctor{Name: name}).Find(&doctor)
-	if result.Error != nil || result.RowsAffected == 0 {
-		return Doctor{}, result.Error
-	}
-	return doctor, nil
-}
-
-func CreateEntity(entity Doctor) {
+func (r *Repo) CreateEntity(entity Doctor) {
 	log.Println("Before create:")
-	result := initializers.Database.Omit("Patients").Create(&entity)
+	result := r.db.Omit("Patients").Create(&entity)
 	if result.Error != nil {
 		log.Fatal(result.Error)
 	}
@@ -67,10 +66,10 @@ func CreateEntity(entity Doctor) {
 	log.Println(result.RowsAffected)
 }
 
-func UpdateEntity(entity Doctor) {
+func (r *Repo) UpdateEntity(entity Doctor) {
 	//doctor := entity
 	//fmt.Println(entity)
-	initializers.Database.Save(&entity)
+	r.db.Save(&entity)
 
 	//fmt.Println(entity)
 }

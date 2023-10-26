@@ -1,123 +1,36 @@
 package doctor
 
 import (
-	"github.com/gin-gonic/gin"
-	validation "github.com/go-ozzo/ozzo-validation"
+	"hospitalApp/internal/patient"
 	"log"
 	"math/rand"
-	"net/http"
-	"regexp"
 	"time"
 )
 
+type Core struct {
+	repo *Repo
+}
+
 type ICore interface {
-	GetById(context *gin.Context)
-	GetAll(context *gin.Context)
-	GetPatientByDoctorId(context *gin.Context)
-	Create(context *gin.Context)
-	Update(context *gin.Context)
+	GetById(request GetDoctorByIdRequest) (Doctor, error)
+	GetAll() []Doctor
+	GetPatientByDoctorId(request GetPatientByDoctorIdRequest) ([]patient.Patient, error)
+	Create(request CreateDoctorRequest) (Doctor, error)
+	Update(request UpdateDoctorRequest) error
 }
 
-func GetById(context *gin.Context) {
-	uri := GetDoctorByIdRequest{}
-	if err := context.BindUri(&uri); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	doctor, err := GetEntityById(uri.ID)
-	log.Printf("Doctor data get by Id(%q) : %+v", uri.ID, doctor)
-	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	if doctor.ID == "" {
-		context.JSON(http.StatusOK, gin.H{"data": ""})
-		return
-	}
-	context.JSON(http.StatusOK, gin.H{"data": doctor})
+type IValidator interface {
+	ValidateCreateRequest(input CreateDoctorRequest) error
 }
 
-func GetAll(context *gin.Context) {
-	doctors := GetAllEntities()
-
-	context.JSON(http.StatusOK, gin.H{"data": doctors})
+func NewCore(r *Repo) *Core {
+	return &Core{r}
 }
 
-func GetPatientByDoctorId(context *gin.Context) {
-	uri := GetPatientByDoctorIdRequest{}
-	if err := context.BindUri(&uri); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+func (c *Core) GetById(request GetDoctorByIdRequest) (Doctor, error) {
 
-	patientsData, err := GetPatientEntityByDoctorId(uri.ID)
-	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	context.JSON(http.StatusOK, gin.H{"data": patientsData})
-}
-
-func Create(context *gin.Context) {
-	// Read request input here
-	var inputData CreateDoctorRequest
-	if err := context.ShouldBindJSON(&inputData); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	validationErr := validation.ValidateStruct(&inputData,
-		validation.Field(&inputData.ContactNo, validation.Match(regexp.MustCompile("\\d{10}$")), validation.Length(10, 10)),
-	)
-	if validationErr != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
-		return
-	}
-
-	var doctorData Doctor
-	doctorData.ID = generatePrimaryKey(5)
-	doctorData.Name = inputData.Name
-	doctorData.ContactNo = inputData.ContactNo
-	doctorData.CreatedAt = time.Now()
-	doctorData.UpdatedAt = time.Now()
-
-	log.Println("Doctor data : %+v", doctorData)
-	CreateEntity(doctorData)
-
-	context.JSON(http.StatusCreated, gin.H{"data": doctorData})
-}
-
-func Update(context *gin.Context) {
-	// Read request input here
-	inputData := UpdateDoctorRequest{}
-	uri := UpdateDoctorRequestUri{}
-	if err := context.ShouldBindJSON(&inputData); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	if err := context.BindUri(&uri); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	log.Printf("Doctor data input : %+v", inputData)
-
-	doctorData, err := getDoctorFromDBById(uri.ID)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Printf("Doctor data getFromDB : %+v", doctorData)
-	doctorData.ContactNo = inputData.ContactNo
-	doctorData.UpdatedAt = time.Now()
-	UpdateEntity(doctorData)
-
-	context.JSON(http.StatusOK, gin.H{"data": "updated"})
-}
-
-func getDoctorFromDBById(id string) (Doctor, error) {
-	doctor, err := GetEntityById(id)
+	doctor, err := c.repo.GetEntityById(request.ID)
+	log.Printf("Doctor data get by Id(%q) : %+v", request.ID, doctor)
 	if err != nil {
 		return Doctor{}, err
 	}
@@ -125,7 +38,71 @@ func getDoctorFromDBById(id string) (Doctor, error) {
 	return doctor, nil
 }
 
-func generatePrimaryKey(length uint) string {
+func (c *Core) GetAll() []Doctor {
+
+	doctors := c.repo.GetAllEntities()
+
+	return doctors
+}
+
+func (c *Core) GetPatientByDoctorId(request GetPatientByDoctorIdRequest) ([]patient.Patient, error) {
+
+	patientsData, err := c.repo.GetPatientEntityByDoctorId(request.ID)
+	if err != nil {
+		return []patient.Patient{}, err
+	}
+
+	return patientsData, nil
+}
+
+func (c *Core) Create(request CreateDoctorRequest) (Doctor, error) {
+
+	validationErr := c.ValidateCreateRequest(request)
+	if validationErr != nil {
+		return Doctor{}, validationErr
+	}
+
+	var doctorData Doctor
+	doctorData.ID = c.generatePrimaryKey(5)
+	doctorData.Name = request.Name
+	doctorData.ContactNo = request.ContactNo
+	doctorData.CreatedAt = time.Now()
+	doctorData.UpdatedAt = time.Now()
+
+	log.Println("Doctor data : %+v", doctorData)
+	c.repo.CreateEntity(doctorData)
+
+	return doctorData, nil
+}
+
+func (c *Core) Update(request UpdateDoctorRequest) error {
+
+	doctorData, err := c.getDoctorFromDBById(request.ID)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	log.Printf("Doctor data getFromDB : %+v", doctorData)
+
+	doctorData.ContactNo = request.ContactNo
+	doctorData.UpdatedAt = time.Now()
+	c.repo.UpdateEntity(doctorData)
+
+	return nil
+}
+
+func (c *Core) getDoctorFromDBById(id string) (Doctor, error) {
+
+	doctor, err := c.repo.GetEntityById(id)
+	if err != nil {
+		return Doctor{}, err
+	}
+
+	return doctor, nil
+}
+
+func (c *Core) generatePrimaryKey(length uint) string {
+
 	var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 	const charset = "abcdefghijklmnopqrstuvwxyz" +
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
